@@ -9,14 +9,15 @@
  * @author Lucas
  */
 public class Nodo {    
-    int frequency;
-    String character;    
-    Nodo right;
-    Nodo left;
+    public int frequency;
+    public String character;    
+    public Nodo right;
+    public Nodo left;
+    public Nodo father;
 
     Nodo(String character, int frequency) {
         this.character = character;
-        this.frequency = frequency;        
+        this.frequency = frequency;                
     }
     
     @Override
