@@ -28,11 +28,6 @@ public class Huffman {
         System.out.println(listAux);
         System.out.println(searchNode());        
         writeInGraphviz();
-//        System.out.println(listAux.get(0));
-//        System.out.println(listAux.get(0).father);
-//        System.out.println(listAux.get(0).father.father);
-//        System.out.println(listAux.get(0).father.father.father);   
-
     }
 
     public static String searchNode() {
@@ -161,13 +156,17 @@ public class Huffman {
     public static void writeInGraphviz() {
         System.out.println(getNivel(0).get(0).frequency);
         for (int i = 1; i <= getAltura(); i++) {
-            if (getNivel(i).size() == Math.pow(2, i)) {
+            if (getNivel(i+1).size() == Math.pow(2, i+1)) {
                 for (int j = 0; j < getNivel(i).size(); j++) {
                     System.out.println(getNivel(i).get(j).frequency);                    
-                    if(getNivel(i+1).size() == Math.pow(2, i)) {
-                        System.out.println(getNivel(i).get(j).left.frequency);                   
-                        System.out.println(getNivel(i).get(j).right.frequency);                  
-                    }
+                    if(getNivel(i).get(j).left != null && getNivel(i).get(j).left != null) {
+                        System.out.println(getNivel(i).get(j).left.frequency);
+                        System.out.println(getNivel(i).get(j).right.frequency);
+                    }                    
+                }
+            } else {
+                for (int j = 0; j < getNivel(i+1).size(); j++) {
+                    System.out.println(getNivel(i+1).get(j).frequency);
                 }
             }
         }
