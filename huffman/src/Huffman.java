@@ -37,24 +37,6 @@ public class Huffman {
         compress();
     }   
 
-    public static void compress() {
-        BinaryOut binary = new BinaryOut("outputBinary.txt");
-        for (int i = 0; i < word.length(); i++) {
-            String code = mapBinaryWord.get(word.charAt(i));
-            for (int j = 0; j < code.length(); j++) {
-                if (code.charAt(j) == '1') {
-                    System.out.print("1");
-                    binary.write(true);
-                } else {
-                    System.out.print("0");
-                    binary.write(false);
-                }
-            }
-        }
-        binary.close();
-        System.out.println(binary.toString());
-    }
-
     public static String searchNode(int cont) {
         String binary = "";
         return searchNode(listAux.get(cont), binary);
@@ -157,6 +139,24 @@ public class Huffman {
                 System.out.println(sb + " " + listAux.get(i).character + " " + listAux.get(i).frequency);
             }
         }
+    }
+    
+    public static void compress() {
+        BinaryOut binary = new BinaryOut("outputBinary.txt");
+        for (int i = 0; i < word.length(); i++) {
+            String code = mapBinaryWord.get(word.charAt(i));
+            for (int j = 0; j < code.length(); j++) {
+                if (code.charAt(j) == '1') {
+                    System.out.print("1");
+                    binary.write(true);
+                } else {
+                    System.out.print("0");
+                    binary.write(false);
+                }
+            }
+        }
+        binary.close();
+        System.out.println(binary.toString());
     }
 
     public static void writeInGraphviz() throws IOException {
