@@ -22,20 +22,20 @@ import java.util.Stack;
 public class Huffman {
 
     public static Nodo root = null;
-    public static Map<String, Integer> mapBinaryWord;
+    public static HashMap<Character, String> mapBinaryWord;
     public static LinkedList<Nodo> list;
     public static LinkedList<Nodo> listAux;
 
     public static void main(String[] args) throws IOException {
         buildMap("aaaaabbbbcccdde");
         System.out.println(listAux);
-        System.out.println(searchNode());        
+        buildTable();
         writeInGraphviz();
     }
 
-    public static String searchNode() {
+     public static String searchNode(int cont) {
         String binary = "";
-        return searchNode(listAux.get(0), binary);
+        return searchNode(listAux.get(cont), binary);
     }
 
     private static String searchNode(Nodo node, String binary) {
@@ -116,6 +116,25 @@ public class Huffman {
         listAux.add(less2);
         list.add(nodoFather);
         return buildTree();
+    }
+    
+    /**
+     * Constroi uma tabela com os caracters e sua sequencia de bits
+     *
+     * @return
+     */
+    public static void buildTable() {
+        mapBinaryWord = new HashMap<Character, String>();
+        for (int i = 0; i < listAux.size(); i++) {
+            if (listAux.get(i).character.length() == 1) {
+                char character = listAux.get(i).character.charAt(0);
+                StringBuffer sb = new StringBuffer(searchNode(i));
+                sb.reverse();
+                String code = sb.toString();
+                mapBinaryWord.put(character, code);
+                System.out.println(sb + " " + listAux.get(i).character + " " + listAux.get(i).frequency);
+            }
+        }
     }
 
     public static ArrayList<Nodo> getNivel(int n) {
