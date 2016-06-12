@@ -1,5 +1,6 @@
 
 import com.sun.xml.internal.ws.util.StringUtils;
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,7 +18,7 @@ import java.util.Stack;
  */
 /**
  *
- * @author Lucas
+ * @author Lucas e Camila
  */
 public class Huffman {
 
@@ -25,15 +26,36 @@ public class Huffman {
     public static HashMap<Character, String> mapBinaryWord;
     public static LinkedList<Nodo> list;
     public static LinkedList<Nodo> listAux;
+    public static String word;
 
     public static void main(String[] args) throws IOException {
-        buildMap("aaaaabbbbcccdde");
+        word = "aaaaabbbbcccdde";
+        buildMap(word);
         System.out.println(listAux);
         buildTable();
         writeInGraphviz();
+        compress();
+    }   
+
+    public static void compress() {
+        BinaryOut binary = new BinaryOut("outputBinary.txt");
+        for (int i = 0; i < word.length(); i++) {
+            String code = mapBinaryWord.get(word.charAt(i));
+            for (int j = 0; j < code.length(); j++) {
+                if (code.charAt(j) == '1') {
+                    System.out.print("1");
+                    binary.write(true);
+                } else {
+                    System.out.print("0");
+                    binary.write(false);
+                }
+            }
+        }
+        binary.close();
+        System.out.println(binary.toString());
     }
 
-     public static String searchNode(int cont) {
+    public static String searchNode(int cont) {
         String binary = "";
         return searchNode(listAux.get(cont), binary);
     }
@@ -137,66 +159,27 @@ public class Huffman {
         }
     }
 
-    public static ArrayList<Nodo> getNivel(int n) {
-        ArrayList<Nodo> r = new ArrayList<>();
-        getNivel(root, n, r, 0);
-        return r;
-    }
-
-    private static void getNivel(Nodo nodo, int n, List<Nodo> r, int atual) {
-        if (nodo == null) {
-            throw new IllegalArgumentException("Nível não existe: " + n);
-        }
-        if (n == atual) {
-            r.add(nodo);
-        } else if (atual < n) {
-            if (nodo.left != null) {
-                getNivel(nodo.left, n, r, atual + 1);
-            }
-            if (nodo.right != null) {
-                getNivel(nodo.right, n, r, atual + 1);
-            }
-
-        }
-    }
-
-    public static int getAltura() {
-        return getAltura0(root);
-    }
-
-    private static int getAltura0(Nodo nodo) {
-        if (nodo == null) {
-            return -1;
-        }
-
-        int ae = getAltura0(nodo.left);
-        int ad = getAltura0(nodo.right);
-
-        return 1 + Math.max(ae, ad);
-    }
-
-    public static void writeInGraphviz() throws IOException {        
+    public static void writeInGraphviz() throws IOException {
         BufferedWriter buffWrite = new BufferedWriter(new FileWriter("graph.gv"));
-        buffWrite.append("digraph {\n"); 
+        buffWrite.append("digraph {\n");
         writeInGraphviz(root, buffWrite);
-        buffWrite.append("}"); 
+        buffWrite.append("}");
         buffWrite.close();
     }
 
-    private static void writeInGraphviz(Nodo nodo, BufferedWriter buffWrite) throws IOException {       
-        if(nodo == null) {
+    private static void writeInGraphviz(Nodo nodo, BufferedWriter buffWrite) throws IOException {
+        if (nodo == null) {
             return;
         }
-        if(nodo.left != null){
+        if (nodo.left != null) {
             buffWrite.append(nodo.character + "_" + nodo.frequency + " -> " + nodo.left.character + "_" + nodo.left.frequency + ";" + "\n");
-            System.out.println(nodo.character + "_" + nodo.frequency + " -> " + nodo.left.character + "_" + nodo.left.frequency + ";");    
+            System.out.println(nodo.character + "_" + nodo.frequency + " -> " + nodo.left.character + "_" + nodo.left.frequency + ";");
             writeInGraphviz(nodo.left, buffWrite);
         }
-        if(nodo.right != null){
-            buffWrite.append(nodo.character + "_" + nodo.frequency + " -> " + nodo.right.character + "_" + nodo.right.frequency   + ";" + "\n");
-            System.out.println(nodo.character + "_" + nodo.frequency + " -> " + nodo.right.character + "_" + nodo.right.frequency   + ";");    
+        if (nodo.right != null) {
+            buffWrite.append(nodo.character + "_" + nodo.frequency + " -> " + nodo.right.character + "_" + nodo.right.frequency + ";" + "\n");
+            System.out.println(nodo.character + "_" + nodo.frequency + " -> " + nodo.right.character + "_" + nodo.right.frequency + ";");
             writeInGraphviz(nodo.right, buffWrite);
         }
-        
     }
 }
