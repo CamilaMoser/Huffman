@@ -35,7 +35,7 @@ public class Huffman {
         buildTable();
         writeInGraphviz();
         compress();
-    }   
+    }
 
     public static String searchNode(int cont) {
         String binary = "";
@@ -74,8 +74,8 @@ public class Huffman {
         listAux = new LinkedList<>();
         for (char key : mapWord.keySet()) {
             Nodo nodo = new Nodo(key + "", mapWord.get(key));
+            nodo.setLeafToTrue();
             list.add(nodo);
-
         }
         root = buildTree();
     }
@@ -104,24 +104,36 @@ public class Huffman {
                 less1.character + "" + less2.character,
                 less1.frequency + less2.frequency
         );
-        if ((less1.frequency - less2.frequency) >= 0) {
+        /** 
+         * Se os dois nodos filhos forem folhas então o de menor frequencia
+         * fica a direita do nodo pai e o de maior frequencia a esquerda assim
+         * como exemplifica o enunciado
+         */
+        if (less1.isLeaf() && less2.isLeaf()) {
             nodoFather.right = less1;
             nodoFather.left = less2;
-            less1.father = nodoFather;
             less2.father = nodoFather;
+            less1.father = nodoFather;
         } else {
-            nodoFather.right = less2;
-            nodoFather.left = less1;
-            less1.father = nodoFather;
-            less2.father = nodoFather;
-
+            if ((less1.frequency - less2.frequency) >= 0) {
+                nodoFather.right = less1;
+                nodoFather.left = less2;
+                less1.father = nodoFather;
+                less2.father = nodoFather;
+            } else {
+                nodoFather.right = less2;
+                nodoFather.left = less1;
+                less2.father = nodoFather;
+                less1.father = nodoFather;
+            }
         }
+
         listAux.add(less1);
         listAux.add(less2);
         list.add(nodoFather);
         return buildTree();
     }
-    
+
     /**
      * Constroi uma tabela com os caracters e sua sequencia de bits
      *
@@ -140,7 +152,7 @@ public class Huffman {
             }
         }
     }
-    
+
     public static void compress() {
         BinaryOut binary = new BinaryOut("outputBinary.txt");
         for (int i = 0; i < word.length(); i++) {
