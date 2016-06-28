@@ -1,7 +1,12 @@
 
 import com.sun.xml.internal.ws.util.StringUtils;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,7 +14,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Stack;
+import java.util.UUID;
+import static javax.management.Query.lt;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -27,19 +35,21 @@ public class Huffman {
     public static LinkedList<Nodo> list;
     public static LinkedList<Nodo> listAux;
     public static String word;
-
+    public static int cont = 0;
+    
     public static void main(String[] args) throws IOException {
         word = "aaaaabbbbcccdde";
-        buildMap(word);
-        System.out.println(listAux);
-        buildTable();
+        buildMap(word);        
+        buildTable();        
         writeInGraphviz();
-        compress();
+        System.out.println(word + " - " + cont);        
     }
 
     public static String searchNode(int cont) {
         String binary = "";
-        return searchNode(listAux.get(cont), binary);
+        binary = searchNode(listAux.get(cont), binary);
+        listAux.get(cont).setSequenceBinaty(binary);
+        return binary;
     }
 
     private static String searchNode(Nodo node, String binary) {
@@ -54,10 +64,7 @@ public class Huffman {
         return searchNode(node.father, binary);
     }
 
-    public static void buildMap(String word) {
-        if (word.length() <= 0) {
-            throw new IllegalArgumentException("Palavra vazia");
-        }
+    public static Map buildMapAux() {
         Map<Character, Integer> mapWord = new HashMap<Character, Integer>();
         mapWord.put(word.charAt(0), 1);
         for (int i = 1; i < word.length(); i++) {
@@ -70,44 +77,40 @@ public class Huffman {
                 mapWord.put(key, 1);
             }
         }
+        return mapWord;
+    }
+
+    public static void buildMap(String word) {
+        if (word.length() <= 1) {
+            throw new IllegalArgumentException("Não é uma palavra ou frase");
+        }
+        Map mapWord = buildMapAux();
         list = new LinkedList<>();
         listAux = new LinkedList<>();
-        for (char key : mapWord.keySet()) {
-            Nodo nodo = new Nodo(key + "", mapWord.get(key));
+        for (Object key : mapWord.keySet()) {
+            Nodo nodo = new Nodo(key + "", (int) mapWord.get(key));
             nodo.setLeafToTrue();
             list.add(nodo);
         }
         root = buildTree();
     }
 
-    public static Nodo buildTree() {
-        if (list.size() == 1) {
-            return list.get(0);
-        }
-
-        Nodo less1 = list.get(0);
+    public static Nodo nodeLess() {
+        Nodo less = list.get(0);
         for (int i = 1; i < list.size(); i++) {
-            if (list.get(i).frequency < less1.frequency) {
-                less1 = list.get(i);
+            if (list.get(i).frequency < less.frequency) {
+                less = list.get(i);
             }
         }
-        list.remove(less1);
-        Nodo less2 = list.get(0);
-        for (int i = 1; i < list.size(); i++) {
-            if (list.get(i).frequency < less2.frequency) {
-                less2 = list.get(i);
-            }
-        }
-        list.remove(less2);
+        list.remove(less);
+        return less;
+    }
 
-        Nodo nodoFather = new Nodo(
-                less1.character + "" + less2.character,
-                less1.frequency + less2.frequency
-        );
-        /** 
-         * Se os dois nodos filhos forem folhas então o de menor frequencia
-         * fica a direita do nodo pai e o de maior frequencia a esquerda assim
-         * como exemplifica o enunciado
+    public static void buildSubTree(Nodo less1, Nodo less2, Nodo nodoFather) {
+        /**
+         * Se os dois nodos filhos forem folhas então o de menor frequencia fica
+         * a direita do nodo pai e o de maior frequencia a esquerda assim como
+         * exemplifica o enunciado
          */
         if (less1.isLeaf() && less2.isLeaf()) {
             nodoFather.right = less1;
@@ -127,7 +130,19 @@ public class Huffman {
                 less1.father = nodoFather;
             }
         }
+    }
 
+    public static Nodo buildTree() {
+        if (list.size() == 1) {
+            return list.get(0);
+        }
+        Nodo less1 = nodeLess();
+        Nodo less2 = nodeLess();
+        Nodo nodoFather = new Nodo(
+                less1.character + "" + less2.character,
+                less1.frequency + less2.frequency
+        );
+        buildSubTree(less1, less2, nodoFather);
         listAux.add(less1);
         listAux.add(less2);
         list.add(nodoFather);
@@ -147,8 +162,7 @@ public class Huffman {
                 StringBuffer sb = new StringBuffer(searchNode(i));
                 sb.reverse();
                 String code = sb.toString();
-                mapBinaryWord.put(character, code);
-                System.out.println(sb + " " + listAux.get(i).character + " " + listAux.get(i).frequency);
+                mapBinaryWord.put(character, code);                
             }
         }
     }
@@ -167,31 +181,52 @@ public class Huffman {
                 }
             }
         }
+        binary.flush();
         binary.close();
         System.out.println(binary.toString());
     }
 
     public static void writeInGraphviz() throws IOException {
+        cont = cont + 2;
         BufferedWriter buffWrite = new BufferedWriter(new FileWriter("graph.gv"));
         buffWrite.append("digraph {\n");
         writeInGraphviz(root, buffWrite);
+        cont = cont + 2;
         buffWrite.append("}");
-        buffWrite.close();
+        buffWrite.close();        
     }
 
     private static void writeInGraphviz(Nodo nodo, BufferedWriter buffWrite) throws IOException {
+        cont = cont + 4;
         if (nodo == null) {
-            return;
+            return;            
         }
+        cont++;
         if (nodo.left != null) {
-            buffWrite.append(nodo.character + "_" + nodo.frequency + " -> " + nodo.left.character + "_" + nodo.left.frequency + ";" + "\n");
-            System.out.println(nodo.character + "_" + nodo.frequency + " -> " + nodo.left.character + "_" + nodo.left.frequency + ";");
+            cont = cont + 2;
+            if (nodo.left.isLeaf()) {
+                cont = cont + 5;
+                buffWrite.append(nodo.frequency + " -> " + nodo.left.character + "_" + nodo.left.frequency + "_" + nodo.left.sequenceBinaty + ";" + "\n");
+            } else {
+                cont = cont + 3;
+                buffWrite.append(nodo.frequency + " -> " + nodo.left.frequency + ";" + "\n");
+            }
+            cont = cont + 2;
             writeInGraphviz(nodo.left, buffWrite);
         }
+        cont++;
         if (nodo.right != null) {
-            buffWrite.append(nodo.character + "_" + nodo.frequency + " -> " + nodo.right.character + "_" + nodo.right.frequency + ";" + "\n");
-            System.out.println(nodo.character + "_" + nodo.frequency + " -> " + nodo.right.character + "_" + nodo.right.frequency + ";");
+            cont = cont + 2;
+            if (nodo.right.isLeaf()) {
+                cont = cont + 5;
+                buffWrite.append(nodo.frequency + " -> " + nodo.right.character + "_" + nodo.right.frequency + "_" + nodo.right.sequenceBinaty + ";" + "\n");
+            } else {
+                cont = cont + 3;
+                buffWrite.append(nodo.frequency + " -> " + nodo.right.frequency + ";" + "\n");
+            }
+            cont = cont + 2;
             writeInGraphviz(nodo.right, buffWrite);
         }
+        
     }
 }

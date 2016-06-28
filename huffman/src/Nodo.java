@@ -15,6 +15,7 @@ public class Nodo {
     public Nodo left;
     public Nodo father;
     public boolean leaf;
+    public String sequenceBinaty;
 
     Nodo(String character, int frequency) {
         this.character = character;
@@ -29,6 +30,15 @@ public class Nodo {
     public boolean isLeaf() {
         return this.leaf;
     }
+
+    public String getSequenceBinaty() {
+        return sequenceBinaty;
+    }
+
+    public void setSequenceBinaty(String sequenceBinaty) {
+        this.sequenceBinaty = sequenceBinaty;
+    }  
+    
     
     @Override
     public String toString() {
